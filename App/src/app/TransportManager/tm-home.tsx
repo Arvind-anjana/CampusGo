@@ -14,6 +14,10 @@ const menuItems = [
     route: '/TransportManager/manage-route',
   },
   {
+    title: 'Manage Bus',
+    route: '/TransportManager/manage-bus',
+  },
+  {
     title: 'Bus Board',
     route: '/TransportManager/busboard',
   },

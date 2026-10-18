@@ -1,4 +1,5 @@
 import Bus from "../models/Bus.js";
+import Assignment from "../models/Assignment.js";
 
 const generateBusId = async () => {
   while (true) {
@@ -192,7 +193,7 @@ export const deleteBus = async (req, res) => {
   try {
     const { busId } = req.params;
 
-    const bus = await Bus.findOne({ busId });
+    const bus = await Bus.findOneAndDelete({ busId });
 
     if (!bus) {
       return res.status(404).json({
@@ -201,13 +202,12 @@ export const deleteBus = async (req, res) => {
       });
     }
 
-    bus.isActive = false;
-
-    await bus.save();
+    // Also remove any assignments referencing the deleted bus
+    await Assignment.deleteMany({ busId });
 
     return res.status(200).json({
       success: true,
-      message: "Bus deactivated successfully",
+      message: "Bus deleted successfully",
       data: bus,
     });
   } catch (error) {
@@ -215,7 +215,7 @@ export const deleteBus = async (req, res) => {
 
     return res.status(500).json({
       success: false,
-      message: "Failed to deactivate bus",
+      message: "Failed to delete bus",
     });
   }
 };
