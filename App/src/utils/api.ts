@@ -1,14 +1,6 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// API Client Utility
-//
-// Central place to configure backend URL.
-// Change BASE_URL here when switching between environments:
-//   • Web / desktop browser:     http://localhost:5000/api
-//   • Android Emulator:          http://10.0.2.2:5000/api
-//   • Physical device (Wi-Fi):   http://<YOUR_PC_IP>:5000/api  (e.g. 192.168.1.100)
-// ─────────────────────────────────────────────────────────────────────────────
+import { getToken } from './authStorage';
 
-export const BASE_URL = 'http://10.251.158.160:5000/api';
+export const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
 interface ApiOptions {
@@ -21,7 +13,10 @@ export async function apiRequest<T = unknown>(
   endpoint: string,
   options: ApiOptions = {}
 ): Promise<T> {
-  const { method = 'GET', body, token } = options;
+  const { method = 'GET', body } = options;
+
+  // Auto-fetch token from authStorage if not explicitly passed
+  const token = options.token !== undefined ? options.token : await getToken();
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -29,6 +24,10 @@ export async function apiRequest<T = unknown>(
 
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  if (!BASE_URL) {
+    throw new Error('EXPO_PUBLIC_API_URL is not set. Check your .env file.');
   }
 
   const response = await fetch(`${BASE_URL}${endpoint}`, {
